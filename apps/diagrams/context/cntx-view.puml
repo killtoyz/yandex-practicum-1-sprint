@@ -1,0 +1,17 @@
+@startuml smarthome-app-cntx-view
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Пользователь", "Пользователь умного дома")
+Person(spec, "Специалист", "Специалист по подключению")
+System(smarthomeApp, "smarthomeApp", "Система управления устройствами")
+
+System_Ext(device, "Устройство", "Датчик отопления")
+
+Rel(user, smarthomeApp, "Использует систему")
+Rel(spec, smarthomeApp, "Подключает устройства")
+Rel(smarthomeApp, device, "Управляет")
+
+@enduml
