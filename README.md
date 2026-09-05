@@ -79,9 +79,7 @@
 
 ### 5. Визуализация контекста системы — диаграмма С4
 
-```markdown
 [Контекстная диаграмма: smarthome-app](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/diagrams/context/cntx-view.puml)
-```
 
 # Задание 2. Проектирование микросервисной архитектуры
 
