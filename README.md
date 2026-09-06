@@ -41,6 +41,13 @@
 
 ### 3. Определение доменов и границы контекстов
 
+**As is**
+- **Домен: Отопление дома**
+	- Поддомен: Управление устройствами отопления
+	- Поддомен: Мониторинг показателей устройств
+
+**To be**
+
 - **Домен: Управление устройствами**
 	- Поддомен: Управление устройствами отопления
 		- Контекст: Ведение реестра (каталога) устройств
@@ -83,19 +90,35 @@
 
 # Задание 2. Проектирование микросервисной архитектуры
 
-В этом задании вам нужно предоставить только диаграммы в модели C4. Мы не просим вас отдельно описывать получившиеся микросервисы и то, как вы определили взаимодействия между компонентами To-Be системы. Если вы правильно подготовите диаграммы C4, они и так это покажут.
-
 **Диаграмма контейнеров (Containers)**
 
-Добавьте диаграмму.
+**As Is**
+
+[Диаграмма контейнеров: smarthome-app](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/diagrams/container/cntr-view-as-is.puml)
+
+**To Be**
+
+[Диаграмма контейнеров: smarthome-app](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/diagrams/container/cntr-view-to-be.puml)
 
 **Диаграмма компонентов (Components)**
 
-Добавьте диаграмму для каждого из выделенных микросервисов.
+**Device Management**
+
+[Диаграмма компонентов: Device Management](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/diagrams/component/cmpt-view-device-management.puml)
+
+**Heating Management**
+
+[Диаграмма компонентов: Heating Management](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/diagrams/component/cmpt-view-heating-management.puml)
+
+**Device Monitoring**
+
+[Диаграмма компонентов: Device Monitoring](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/diagrams/component/cmpt-view-device-monitoring.puml)
 
 **Диаграмма кода (Code)**
 
-Добавьте одну диаграмму или несколько.
+**Device Management**
+
+[Диаграмма кода: Device Management](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/diagrams/code/cmpt-view-device-management.puml)
 
 # Задание 3. Разработка ER-диаграммы
 

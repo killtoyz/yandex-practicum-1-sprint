@@ -1,0 +1,31 @@
+@startuml smarthome-app-cntr-view-to-be
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Пользователь", "Пользователь умного дома")
+
+Container_Boundary(deviceManagement, "Device Management") {
+  Container(heatingDeviceManagement, "Microservice: Heating Device Managment", "Go, Gin-gonic", "Принимает запросы пользователя, позволяет вести каталог устройств")
+}
+
+Container_Boundary(heatingManagement, "Heating Management") {
+  Container(heatingControl, "Microservice: Heating Control", "Go, Gin-gonic", "Принимает запросы пользователя, позволяет управлять отоплением")
+}
+
+Container_Boundary(deviceMonitoring, "Device Monitoring") {
+  Container(indicatorsMonitoring, "Microservice: Indicators Monitoring", "Go, Gin-gonic", "Отслеживает показатели устройств")
+  Container(performanceMonitoring, "Microservice: Perfomance Monitoring", "Go, Gin-gonic", "Отслеживает статус устройств")
+}
+
+System_Ext(device, "Устройство", "Датчик отопления")
+
+Rel(user, deviceManagement, "Подключает устройства, ведет каталог")
+Rel(user, heatingManagement, "Управляет отоплением")
+Rel(user, deviceMonitoring, "Отслеживает показания")
+Rel(deviceManagement, device, "Подключение")
+Rel(heatingManagement, device, "Изменение параметров")
+Rel(deviceMonitoring, device, "Отслеживание показателей")
+
+@enduml

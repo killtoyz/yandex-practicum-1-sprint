@@ -1,0 +1,26 @@
+@startuml smarthome-app-сmpt-view-device-managment
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Пользователь", "Пользователь умного дома")
+
+Container_Boundary(deviceManagement, "Device Management", "Go, Gin-gonic") {
+    Container_Boundary(heatingDeviceManagement, "Microservice: Heating Device Management", "Go, Gin-gonic") {
+        Component(heatingDeviceController, "heatingDeviceController", "Управление устройствами отопления")
+        Component(serviceLayer, "Service Layer", "Бизнес логика")
+        Component(repositoryLayer, "RepositoryLayer", "Слой доступа к данным")
+        Component(database, "database", "Хранит данные устройств отопления")
+    }
+}
+
+System_Ext(device, "Устройство", "Датчик отопления")
+
+Rel(user, heatingDeviceManagement, "Подключает устройства, ведет каталог")
+Rel(heatingDeviceController, serviceLayer, "Запрос на подключение устройства")
+Rel(serviceLayer, device, "Подключение устройства")
+Rel(serviceLayer, repositoryLayer, "Прочесть/Записать данные устройства")
+Rel(repositoryLayer, database, "Взаимодействие с БД")
+
+@enduml
