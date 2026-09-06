@@ -1,0 +1,148 @@
+openapi: 3.0.3
+info:
+  title: Heating Control API
+  description: |
+    Настройка температуры на устройствах отопления.
+    Заданная температура принимается асинхронно: сервис отвечает 202 Accepted и
+    публикует событие heating.command.issued. Фактическое применение устройством
+    подтверждается событием command.acknowledged; статус доступен через
+    GET /commands/{commandId}.
+  version: 1.0.0
+servers:
+  - url: https://api.smarthome.example/api/v1
+    description: Через API-шлюз
+tags:
+  - name: setpoints
+  - name: commands
+paths:
+  /modules/{moduleId}/setpoint:
+    put:
+      tags: [setpoints]
+      summary: Установить температуру на устройстве
+      operationId: setSetpoint
+      parameters:
+       - $ref: '#/components/parameters/ModuleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SetpointRequest' }
+      responses:
+        '202':
+          description: Команда принята, устройство получит её в ближайшее время
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CommandAccepted' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    get:
+      tags: [setpoints]
+      summary: Текущая заданная температура
+      operationId: getSetpoint
+      parameters:
+        - $ref: '#/components/parameters/ModuleId'
+      responses:
+        '200':
+          description: Температура, на которую настроено устройство
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Setpoint' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /commands/{commandId}:
+    get:
+      tags: [commands]
+      summary: Дошла ли команда до устройства
+      operationId: getCommand
+      parameters:
+        - name: commandId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Что сейчас с командой
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Command' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ModuleId:
+      name: moduleId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    SetpointRequest:
+      type: object
+      required: [target_value, unit]
+      properties:
+        target_value: { type: number, format: double, example: 22.5 }
+        unit: { type: string, example: °C }
+        mode: { type: string, enum: [manual, auto, off], default: manual }
+    Setpoint:
+      type: object
+      required: [id, module_id, target_value, unit, mode, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        module_id: { type: string, format: uuid }
+        target_value: { type: number, format: double }
+        unit: { type: string }
+        mode: { type: string, enum: [manual, auto, off] }
+        set_by_user_id: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+    CommandAccepted:
+      type: object
+      required: [command_id, status]
+      properties:
+        command_id: { type: string, format: uuid }
+        status: { type: string, enum: [pending], description: Команда принята, но устройством ещё не подтверждена }
+    Command:
+      type: object
+      required: [id, device_id, type, status, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        device_id: { type: string, format: uuid }
+        type: { type: string, example: set_temperature }
+        payload: { type: object, additionalProperties: true }
+        status: { type: string, enum: [pending, delivered, acknowledged, failed] }
+        created_at: { type: string, format: date-time }
+        delivered_at: { type: string, format: date-time, nullable: true }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+  responses:
+    InternalError:
+      description: Внутренняя ошибка сервиса
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    BadRequest:
+      description: Некорректный запрос
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Нет доступа к дому этого устройства
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+security:
+  - bearerAuth: []

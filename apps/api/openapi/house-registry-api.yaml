@@ -1,0 +1,148 @@
+openapi: 3.0.3
+info:
+  title: House Registry API
+  description: Учёт домов и помещений
+  version: 1.0.0
+servers:
+  - url: https://api.smarthome.example/api/v1
+    description: Через API-шлюз
+tags:
+  - name: houses
+  - name: rooms
+paths:
+  /houses:
+    post:
+      tags: [houses]
+      summary: Создать дом
+      operationId: createHouse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HouseCreate'
+      responses:
+        '201':
+          description: Дом создан
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/House' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /houses/{houseId}:
+    get:
+      tags: [houses]
+      summary: Данные дома
+      operationId: getHouse
+      parameters:
+        - $ref: '#/components/parameters/HouseId'
+      responses:
+        '200':
+          description: Дом найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/House' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /houses/{houseId}/rooms:
+    post:
+      tags: [rooms]
+      summary: Добавить помещение в дом
+      operationId: createRoom
+      parameters:
+        - $ref: '#/components/parameters/HouseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RoomCreate' }
+      responses:
+        '201':
+          description: Помещение создано
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Room' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    HouseId:
+      name: houseId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    HouseCreate:
+      type: object
+      required: [name, address, timezone]
+      properties:
+        name: { type: string, maxLength: 100, example: Загородный дом }
+        address: { type: string, maxLength: 255 }
+        timezone: { type: string, example: Europe/Moscow }
+    House:
+      type: object
+      required: [id, name, address, timezone, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        address: { type: string }
+        timezone: { type: string }
+        created_at: { type: string, format: date-time }
+    RoomCreate:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, maxLength: 100, example: Гостиная }
+        floor: { type: integer, example: 1 }
+    Room:
+      type: object
+      required: [id, house_id, name]
+      properties:
+        id: { type: string, format: uuid }
+        house_id: { type: string, format: uuid }
+        name: { type: string }
+        floor: { type: integer, nullable: true }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+  responses:
+    InternalError:
+      description: Внутренняя ошибка сервиса
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    BadRequest:
+      description: Некорректный запрос
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Требуется аутентификация
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Нет доступа к этому дому
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+security:
+  - bearerAuth: []

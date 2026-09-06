@@ -143,11 +143,49 @@
 
 ### 1. Тип API
 
+**REST-синхронное взаимодействие**
+Все события, которые инициируются пользователем - синхронные, т.к. пользователю нужен немедленный ответ.
+Запросы маршрутизируются непосредственно в микросервис, ответственный за этот функционал.
+
+**AsyncApi-асинхронное взаимодействие**
+Все события, которые инициируются системно - асинхронные, т.к. это повышает отказоустойчивость системы. Пример такого события, телеметрия (мониторинг устройств).
+
+**Как работает гибридное взаимодействие**
+
+Показатели устройств накапливаются асинхронно и сохраняются в БД сервиса мониторинга. Пользователь отправляет синхронный запрос на получение показателей устройства.
+
+Когда пользователь отправляет запрос, то читаются последние опубликованные данные, которые сервис мониторинга отдаёт из своей БД.
+
+1. Это сохраняет "текущую" логику как было в монолите, т.к. тоже отдавались данные из БД при недоступности сервиса
+2. Данные могут оставать от реальных
+3. Это повышает отказоустройчивость всей системы
+
+**Взаимодействие с микросервисами и между ними**
+
+1. Перед микросервисами стоит API-шлюз (API Gateway),который маршрутизирует запросы пользоваля в нужный микросервис (также может понадобиться Service Registry). На диаграммах это не выделено, но имеется ввиду. На диаграммах не выделял, т.к. этого не запрашивалось по ДЗ.
+2. Между микросервисами для асинхронного взаимодействия должен быть реализован единый брокер сообщений. Каждый сервис-издатель владеет своими топиками. Любой желающий может подписать на конкретный топик. Также не выделено на диаграммах.
+
 Укажите, какой тип API вы будете использовать для взаимодействия микросервисов. Объясните своё решение.
 
 ### 2. Документация API
 
-Здесь приложите ссылки на документацию API для микросервисов, которые вы спроектировали в первой части проектной работы. Для документирования используйте Swagger/OpenAPI или AsyncAPI.
+***Формировал Агентом***
+
+**OpenApi**
+
+[device-management-api](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/api/openapi/device-management-api.yaml)
+[heating-control-api](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/api/openapi/heating-control-api.yaml)
+[house-registry-api](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/api/openapi/house-registry-api.yaml)
+[identity-api](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/api/openapi/identity-api.yaml)
+[indicators-monitoring-api](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/api/openapi/indicators-monitoring-api.yaml)
+[performance-monitoring-api](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/api/openapi/performance-monitoring-api.yaml)
+
+**AsyncApi** (В формате OpenApi)
+
+[device-management-events](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/api/asyncapi/device-management-events.yaml)
+[heating-control-events](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/api/asyncapi/heating-control-events.yaml)
+[indicators-monitoring-events](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/api/asyncapi/indicators-monitoring-events.yaml)
+[performance-monitoring-events](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/api/asyncapi/performance-monitoring-events.yaml)
 
 # Задание 5. Работа с docker и docker-compose
 
