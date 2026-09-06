@@ -1,0 +1,157 @@
+@startuml smarthome-app-er-view
+
+hide circle
+skinparam linetype ortho
+left to right direction
+
+package "Identity" #F7F9FC {
+  entity "User" as user {
+    * id : uuid <<PK>>
+    --
+    * email : varchar(255) <<Уник>>
+    * password_hash : varchar(255)
+    * name : varchar(100)
+    * phone : varchar(20)
+    * created_at : timestamptz
+    * updated_at : timestamptz
+  }
+}
+
+package "House Registry" #F7F9FC {
+  entity "House" as house {
+    * id : uuid <<PK>>
+    --
+    * name : varchar(100)
+    * address : varchar(255)
+    * timezone : varchar(50)
+    * created_at : timestamptz
+  }
+
+  entity "Room" as room {
+    * id : uuid <<PK>>
+    --
+    * house_id : uuid <<FK>>
+    * name : varchar(100)
+    * floor : int
+  }
+
+  entity "HouseAccess" as access {
+    * id : uuid <<PK>>
+    --
+    * house_id : uuid <<FK>>
+    * user_id : uuid <<логич.>>
+    * role : varchar(20)
+    * granted_at : timestamptz
+  }
+}
+
+package "Device Management" #F7F9FC {
+  entity "DeviceType" as devicetype {
+    * id : uuid <<PK>>
+    --
+    * code : varchar(50) <<Уник>>
+    * name : varchar(100)
+    * category : varchar(20)
+    * manufacturer : varchar(100)
+  }
+
+  entity "Device" as device {
+    * id : uuid <<PK>>
+    --
+    * type_id : uuid <<FK>>
+    * house_id : uuid <<логич.>>
+    * room_id : uuid <<логич.>>
+    * serial_number : varchar(100) <<UQ>>
+    * name : varchar(100)
+    * firmware_version : varchar(50)
+    * status : varchar(20)
+    * installed_at : timestamptz
+  }
+
+  entity "Module" as module {
+    * id : uuid <<PK>>
+    --
+    * device_id : uuid <<FK>>
+    * kind : varchar(20)
+    * capability : varchar(50)
+    * unit : varchar(20)
+  }
+}
+
+package "Heating Control" #F7F9FC {
+  entity "Setpoint" as setpoint {
+    * id : uuid <<PK>>
+    --
+    * module_id : uuid <<логич.>>
+    * target_value : numeric(6,2)
+    * unit : varchar(20)
+    * mode : varchar(20)
+    * set_by_user_id : uuid <<логич.>>
+    * created_at : timestamptz
+  }
+
+  entity "Command" as command {
+    * id : uuid <<PK>>
+    --
+    * device_id : uuid <<логич.>>
+    * type : varchar(50)
+    * payload : jsonb
+    * status : varchar(20)
+    * created_at : timestamptz
+    * delivered_at : timestamptz
+  }
+}
+
+package "Monitoring" #F7F9FC {
+  entity "TelemetryData" as telemetry {
+    * id : bigserial <<PK>>
+    --
+    * module_id : uuid <<логич.>>
+    * metric : varchar(50)
+    * value : numeric(12,4)
+    * unit : varchar(20)
+    * measured_at : timestamptz
+  }
+
+  entity "DeviceHealth" as health {
+    * device_id : uuid <<PK, логич.>>
+    --
+    * state : varchar(20)
+    * last_seen_at : timestamptz
+    * updated_at : timestamptz
+  }
+
+  entity "Alert" as alert {
+    * id : uuid <<PK>>
+    --
+    * device_id : uuid <<логич.>>
+    * level : varchar(20)
+    * message : varchar(500)
+    * created_at : timestamptz
+    * resolved_at : timestamptz
+  }
+}
+
+house ||--o{ room
+house ||--o{ access
+devicetype ||--o{ device
+device ||--o{ module
+
+user ||..o{ access : "user_id"
+house ||..o{ device : "house_id"
+room ||..o{ device : "room_id"
+module ||..o{ setpoint : "module_id"
+module ||..o{ telemetry : "module_id"
+device ||..o{ command : "device_id"
+device ||..|| health : "device_id"
+device ||..o{ alert : "device_id"
+user ||..o{ setpoint : "set_by_user_id"
+
+Legend left
+  PK - Ключ
+  FK - Внешний ключ в границах сервиса
+  Уник. - Уникальное значение
+  логич. - Внешнее значение из БД другого сервиса (логическая связь)
+endlegend
+
+@enduml
