@@ -121,6 +121,14 @@
 
 [Диаграмма компонентов: Device Monitoring](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/diagrams/component/cmpt-view-device-monitoring.puml)
 
+**House Management**
+
+[Диаграмма компонентов: House Management](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/diagrams/component/cmpt-view-house-management.puml)
+
+**User Management**
+
+[Диаграмма компонентов: User Management](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/diagrams/component/cmpt-view-user-management.puml)
+
 **Диаграмма кода (Code)**
 
 **Device Management**
