@@ -1,0 +1,27 @@
+@startuml smarthome-app-cmpt-view-house-management
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Пользователь", "Пользователь умного дома")
+
+Container_Boundary(houseService, "Microservice: House Registry", "Go, Gin-gonic") {
+    Component(houseController, "houseController", "Дома и помещения")
+    Component(accessController, "accessController", "Доступ пользователей к дому")
+    Component(houseServiceLayer, "House Service", "Бизнес-логика домов и помещений")
+    Component(accessServiceLayer, "Access Service", "Роли и права доступа к дому")
+    Component(houseRepository, "RepositoryLayer", "Слой доступа к данным")
+    Component(houseDb, "Houses Database", "Хранит данные домов, помещений, прав доступа")
+}
+
+Rel(user, houseController, "Добавляет дома и помещения")
+Rel(user, accessController, "Выдаёт и отзывает доступ к дому")
+Rel(houseController, houseServiceLayer, "Операции с домом и помещениями")
+Rel(accessController, accessServiceLayer, "Операции с правами доступа")
+Rel(houseServiceLayer, houseRepository, "Читает/Записывает данные дома")
+Rel(accessServiceLayer, houseRepository, "Читает/Записывает права доступа")
+Rel(accessServiceLayer, identityService, "Проверяет существование пользователя")
+Rel(houseRepository, houseDb, "Взаимодействие с БД")
+
+@enduml

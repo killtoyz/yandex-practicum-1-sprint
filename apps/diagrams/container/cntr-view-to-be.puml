@@ -6,26 +6,53 @@ top to bottom direction
 
 Person(user, "Пользователь", "Пользователь умного дома")
 
-Container_Boundary(deviceManagement, "Device Management") {
-  Container(heatingDeviceManagement, "Microservice: Heating Device Managment", "Go, Gin-gonic", "Принимает запросы пользователя, позволяет вести каталог устройств")
+System_Boundary(userManagement, "Управление пользователями") {
+  Container(identityService, "Microservice: Identity", "Go, Gin-gonic", "Учётные записи, аутентификация, выпуск токенов")
+  ContainerDb(userDb, "Users Database", "PostgreSQL", "Учётные записи")
 }
 
-Container_Boundary(heatingManagement, "Heating Management") {
-  Container(heatingControl, "Microservice: Heating Control", "Go, Gin-gonic", "Принимает запросы пользователя, позволяет управлять отоплением")
+System_Boundary(houseManagement, "Управление домами") {
+  Container(houseService, "Microservice: House Registry", "Go, Gin-gonic", "Дома, помещения, доступ пользователей к дому")
+  ContainerDb(houseDb, "Houses Database", "PostgreSQL", "Дома, помещения, права доступа")
 }
 
-Container_Boundary(deviceMonitoring, "Device Monitoring") {
-  Container(indicatorsMonitoring, "Microservice: Indicators Monitoring", "Go, Gin-gonic", "Отслеживает показатели устройств")
-  Container(performanceMonitoring, "Microservice: Perfomance Monitoring", "Go, Gin-gonic", "Отслеживает статус устройств")
+System_Boundary(deviceManagement, "Управление устройствами") {
+  Container(heatingDeviceManagement, "Microservice: Heating Device Management", "Go, Gin-gonic", "Каталог устройств, подключение")
+  ContainerDb(deviceDb, "Devices Database", "PostgreSQL", "Устройства, типы, модули")
 }
 
-System_Ext(device, "Устройство", "Датчик отопления")
+System_Boundary(heatingManagement, "Управление отоплением") {
+  Container(heatingControl, "Microservice: Heating Control", "Go, Gin-gonic", "Уставки и команды устройствам")
+  ContainerDb(heatingDb, "Heating Database", "PostgreSQL", "Уставки, команды, расписания")
+}
 
-Rel(user, deviceManagement, "Подключает устройства, ведет каталог")
-Rel(user, heatingManagement, "Управляет отоплением")
-Rel(user, deviceMonitoring, "Отслеживает показания")
-Rel(deviceManagement, device, "Подключение")
-Rel(heatingManagement, device, "Изменение параметров")
-Rel(deviceMonitoring, device, "Отслеживание показателей")
+System_Boundary(deviceMonitoring, "Мониторинг устройств") {
+  Container(indicatorsMonitoring, "Microservice: Indicators Monitoring", "Go, Gin-gonic", "Показания устройств")
+  Container(performanceMonitoring, "Microservice: Performance Monitoring", "Go, Gin-gonic", "Состояние и доступность устройств")
+  ContainerDb(telemetryDb, "Telemetry Database", "PostgreSQL", "Телеметрия, состояние устройств")
+}
+
+System_Ext(device, "Устройство", "Датчик или реле, установленное в доме")
+
+Rel(user, identityService, "Регистрируется, входит в систему")
+Rel(user, houseService, "Ведёт дома и помещения, выдаёт доступ")
+Rel(user, heatingDeviceManagement, "Подключает устройства, ведёт каталог")
+Rel(user, heatingControl, "Управляет отоплением")
+Rel(user, indicatorsMonitoring, "Отслеживает показания")
+
+Rel(identityService, userDb, "Читает/Записывает")
+Rel(houseService, houseDb, "Читает/Записывает")
+Rel(heatingDeviceManagement, deviceDb, "Читает/Записывает")
+Rel(heatingControl, heatingDb, "Читает/Записывает")
+Rel(indicatorsMonitoring, telemetryDb, "Читает/Записывает")
+Rel(performanceMonitoring, telemetryDb, "Читает/Записывает")
+
+Rel(houseService, identityService, "Проверяет существование пользователя")
+Rel(heatingDeviceManagement, houseService, "Проверяет принадлежность дома и помещения")
+
+Rel(heatingDeviceManagement, device, "Подключение")
+Rel(heatingControl, device, "Передача уставок и команд")
+Rel(indicatorsMonitoring, device, "Сбор показаний")
+Rel(performanceMonitoring, device, "Проверка доступности")
 
 @enduml

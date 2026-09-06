@@ -4,14 +4,14 @@ top to bottom direction
 
 !includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
 
-Person(user, "Пользователь", "Пользователь умного дома")
+Person(user, "Пользователь", "Владелец или житель дома")
 Person(spec, "Специалист", "Специалист по подключению")
-System(smarthomeApp, "smarthomeApp", "Система управления устройствами")
+System(smarthomeApp, "smarthomeApp", "Учёт пользователей и домов, управление устройствами, мониторинг показаний")
 
-System_Ext(device, "Устройство", "Датчик отопления")
+System_Ext(device, "Устройство", "Датчик или реле, установленное в доме")
 
-Rel(user, smarthomeApp, "Использует систему")
+Rel(user, smarthomeApp, "Регистрируется, ведёт свои дома, управляет устройствами")
 Rel(spec, smarthomeApp, "Подключает устройства")
-Rel(smarthomeApp, device, "Управляет")
+Rel(smarthomeApp, device, "Управляет, собирает показания")
 
 @enduml
