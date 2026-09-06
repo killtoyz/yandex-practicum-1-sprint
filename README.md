@@ -118,7 +118,7 @@
 
 **Device Management**
 
-[Диаграмма кода: Device Management](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/diagrams/code/cmpt-view-device-management.puml)
+[Диаграмма кода: Device Management](https://github.com/killtoyz/yandex-practicum-1-sprint/blob/warmhouse/apps/diagrams/code/code-view-device-management.puml)
 
 # Задание 3. Разработка ER-диаграммы
 
