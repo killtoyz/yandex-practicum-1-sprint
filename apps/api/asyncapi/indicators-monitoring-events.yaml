@@ -1,0 +1,97 @@
+asyncapi: 3.0.0
+info:
+  title: Indicators Monitoring Events
+  version: 1.0.0
+  description: |
+    Приём показаний устройств. Сервис только подписчик: он накапливает
+    телеметрию в собственной базе, а пользователь читает её синхронно
+    через REST. Каталог устройств отслеживается, чтобы знать состав модулей.
+servers:
+  broker:
+    host: kafka:9092
+    protocol: kafka
+    description: Общий брокер сообщений экосистемы
+channels:
+  telemetryReadingRecorded:
+    address: telemetry.reading.recorded
+    description: Показание, снятое измерительным модулем устройства
+    messages:
+      telemetryReadingRecorded:
+        $ref: '#/components/messages/TelemetryReadingRecorded'
+  deviceRegistered:
+    address: device.registered
+    description: Устройство появилось в каталоге
+    messages:
+      deviceRegistered:
+        $ref: '#/components/messages/DeviceRegistered'
+  deviceRemoved:
+    address: device.removed
+    description: Устройство удалено из каталога
+    messages:
+      deviceRemoved:
+        $ref: '#/components/messages/DeviceRemoved'
+operations:
+  receiveTelemetryReadingRecorded:
+    action: receive
+    channel:
+      $ref: '#/channels/telemetryReadingRecorded'
+    messages:
+      - $ref: '#/channels/telemetryReadingRecorded/messages/telemetryReadingRecorded'
+  receiveDeviceRegistered:
+    action: receive
+    channel:
+      $ref: '#/channels/deviceRegistered'
+    messages:
+      - $ref: '#/channels/deviceRegistered/messages/deviceRegistered'
+  receiveDeviceRemoved:
+    action: receive
+    channel:
+      $ref: '#/channels/deviceRemoved'
+    messages:
+      - $ref: '#/channels/deviceRemoved/messages/deviceRemoved'
+components:
+  messages:
+    TelemetryReadingRecorded:
+      name: TelemetryReadingRecorded
+      title: Снято показание
+      contentType: application/json
+      bindings:
+        kafka:
+          key:
+            type: string
+            format: uuid
+            description: device_id — порядок показаний одного устройства сохраняется
+      payload:
+        $ref: '#/components/schemas/TelemetryReadingPayload'
+    DeviceRegistered:
+      name: DeviceRegistered
+      title: Устройство зарегистрировано
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/DeviceRefPayload'
+    DeviceRemoved:
+      name: DeviceRemoved
+      title: Устройство удалено
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/DeviceRefPayload'
+  schemas:
+    TelemetryReadingPayload:
+      type: object
+      required: [event_id, device_id, module_id, metric, value, unit, measured_at]
+      properties:
+        event_id: { type: string, format: uuid, description: Ключ дедупликации }
+        device_id: { type: string, format: uuid }
+        module_id: { type: string, format: uuid }
+        metric: { type: string, example: temperature }
+        value: { type: number, format: double, example: 21.4 }
+        unit: { type: string, example: °C }
+        measured_at: { type: string, format: date-time, description: Время замера на устройстве, а не время доставки }
+    DeviceRefPayload:
+      type: object
+      required: [event_id, occurred_at, device_id]
+      properties:
+        event_id: { type: string, format: uuid }
+        occurred_at: { type: string, format: date-time }
+        device_id: { type: string, format: uuid }
+        house_id: { type: string, format: uuid }

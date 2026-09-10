@@ -1,0 +1,42 @@
+@startuml smarthome-app-cmpt-view-device-monitoring
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Пользователь", "Пользователь умного дома")
+
+Container_Boundary(deviceMonitoring, "Device Monitoring") {
+    Container_Boundary(indicatorsMonitoring, "Microservice: Indicators Monitoring", "Go") {
+        Component(indicatorsMonitoringController, "indicatorsMonitoringController", "Принимает внешние запросы")
+        Component(indicatorsServiceLayer, "Service Layer", "Бизнес логика")
+        Component(indicatorsObserver, "Observer", "Проактивно собирает данные устройства")
+        Component(indicatorsRepositoryLayer, "RepositoryLayer", "Слой доступа к данным")
+        Component(indicatorsDatabase, "database", "Хранит данные устройств отопления")
+    }
+    Container_Boundary(performanceMonitoring, "Microservice: Perfomance Monitoring", "Go") {
+        Component(performanceMonitoringController, "heatingManagementController", "Принимает внешние запросы")
+        Component(performanceServiceLayer, "Service Layer", "Бизнес логика")
+        Component(performanceObserver, "Observer", "Проактивно собирает данные устройства")
+        Component(performanceRepositoryLayer, "RepositoryLayer", "Слой доступа к данным")
+        Component(performanceDatabase, "database", "Хранит данные устройств отопления")
+    }
+}
+
+System_Ext(device, "Устройство", "Датчик отопления")
+
+Rel(user, indicatorsMonitoring, "Запрашивает показатели устройства")
+Rel(indicatorsMonitoringController, indicatorsServiceLayer, "Запрашивает данные")
+Rel(indicatorsObserver, indicatorsServiceLayer, "Передает показатели устройства")
+Rel(indicatorsObserver, device, "Получает показатели устройства")
+Rel(indicatorsServiceLayer, indicatorsRepositoryLayer, "Прочесть/Записать данные температуры и действий пользователя")
+Rel(indicatorsRepositoryLayer, indicatorsDatabase, "Взаимодействие с БД")
+
+Rel(user, performanceMonitoringController, "Запрашивает показатели устройства")
+Rel(performanceMonitoringController, performanceServiceLayer, "Запрашивает данные")
+Rel(performanceObserver, performanceServiceLayer, "Передает показатели устройства")
+Rel(performanceObserver, device, "Получает показатели устройства")
+Rel(performanceServiceLayer, performanceRepositoryLayer, "Прочесть/Записать данные температуры и действий пользователя")
+Rel(performanceRepositoryLayer, performanceDatabase, "Взаимодействие с БД")
+
+@enduml

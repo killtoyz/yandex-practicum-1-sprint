@@ -1,0 +1,58 @@
+@startuml smarthome-app-cntr-view-to-be
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Пользователь", "Пользователь умного дома")
+
+System_Boundary(userManagement, "Управление пользователями") {
+  Container(identityService, "Microservice: Identity", "Go, Gin-gonic", "Учётные записи, аутентификация, выпуск токенов")
+  ContainerDb(userDb, "Users Database", "PostgreSQL", "Учётные записи")
+}
+
+System_Boundary(houseManagement, "Управление домами") {
+  Container(houseService, "Microservice: House Registry", "Go, Gin-gonic", "Дома, помещения, доступ пользователей к дому")
+  ContainerDb(houseDb, "Houses Database", "PostgreSQL", "Дома, помещения, права доступа")
+}
+
+System_Boundary(deviceManagement, "Управление устройствами") {
+  Container(heatingDeviceManagement, "Microservice: Heating Device Management", "Go, Gin-gonic", "Каталог устройств, подключение")
+  ContainerDb(deviceDb, "Devices Database", "PostgreSQL", "Устройства, типы, модули")
+}
+
+System_Boundary(heatingManagement, "Управление отоплением") {
+  Container(heatingControl, "Microservice: Heating Control", "Go, Gin-gonic", "Уставки и команды устройствам")
+  ContainerDb(heatingDb, "Heating Database", "PostgreSQL", "Уставки, команды, расписания")
+}
+
+System_Boundary(deviceMonitoring, "Мониторинг устройств") {
+  Container(indicatorsMonitoring, "Microservice: Indicators Monitoring", "Go, Gin-gonic", "Показания устройств")
+  Container(performanceMonitoring, "Microservice: Performance Monitoring", "Go, Gin-gonic", "Состояние и доступность устройств")
+  ContainerDb(telemetryDb, "Telemetry Database", "PostgreSQL", "Телеметрия, состояние устройств")
+}
+
+System_Ext(device, "Устройство", "Датчик или реле, установленное в доме")
+
+Rel(user, identityService, "Регистрируется, входит в систему")
+Rel(user, houseService, "Ведёт дома и помещения, выдаёт доступ")
+Rel(user, heatingDeviceManagement, "Подключает устройства, ведёт каталог")
+Rel(user, heatingControl, "Управляет отоплением")
+Rel(user, indicatorsMonitoring, "Отслеживает показания")
+
+Rel(identityService, userDb, "Читает/Записывает")
+Rel(houseService, houseDb, "Читает/Записывает")
+Rel(heatingDeviceManagement, deviceDb, "Читает/Записывает")
+Rel(heatingControl, heatingDb, "Читает/Записывает")
+Rel(indicatorsMonitoring, telemetryDb, "Читает/Записывает")
+Rel(performanceMonitoring, telemetryDb, "Читает/Записывает")
+
+Rel(houseService, identityService, "Проверяет существование пользователя")
+Rel(heatingDeviceManagement, houseService, "Проверяет принадлежность дома и помещения")
+
+Rel(heatingDeviceManagement, device, "Подключение")
+Rel(heatingControl, device, "Передача уставок и команд")
+Rel(indicatorsMonitoring, device, "Сбор показаний")
+Rel(performanceMonitoring, device, "Проверка доступности")
+
+@enduml

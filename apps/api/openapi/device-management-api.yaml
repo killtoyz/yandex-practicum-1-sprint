@@ -1,0 +1,192 @@
+openapi: 3.0.3
+info:
+  title: Device Management API
+  description: Каталог устройств и их подключение
+  version: 1.0.0
+servers:
+  - url: https://api.smarthome.example/api/v1
+    description: Через API-шлюз
+tags:
+  - name: devices
+paths:
+  /devices:
+    post:
+      tags: [devices]
+      summary: Подключить новое устройство
+      operationId: registerDevice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DeviceCreate' }
+      responses:
+        '201':
+          description: Устройство зарегистрировано, опубликовано событие device.registered
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Device' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409':
+          description: Устройство с таким серийным номером уже зарегистрировано
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    get:
+      tags: [devices]
+      summary: Список устройств
+      operationId: listDevices
+      parameters:
+        - name: house_id
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: room_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { type: string, enum: [active, inactive, error] }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+        - name: offset
+          in: query
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200':
+          description: Список устройств
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeviceList' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /devices/{deviceId}:
+    get:
+      tags: [devices]
+      summary: Данные устройства
+      operationId: getDevice
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      responses:
+        '200':
+          description: Устройство найдено
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Device' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    delete:
+      tags: [devices]
+      summary: Отключить устройство
+      operationId: removeDevice
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      responses:
+        '204':
+          description: Устройство удалено, опубликовано событие device.removed
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    DeviceId:
+      name: deviceId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    DeviceCreate:
+      type: object
+      required: [house_id, type_id, serial_number, name]
+      properties:
+        house_id: { type: string, format: uuid }
+        room_id: { type: string, format: uuid, nullable: true }
+        type_id: { type: string, format: uuid }
+        serial_number: { type: string, maxLength: 100 }
+        name: { type: string, maxLength: 100, example: Датчик в гостиной }
+        firmware_version: { type: string, maxLength: 50 }
+        modules:
+          type: array
+          items: { $ref: '#/components/schemas/ModuleCreate' }
+    Device:
+      type: object
+      required: [id, house_id, type_id, serial_number, name, status, installed_at]
+      properties:
+        id: { type: string, format: uuid }
+        house_id: { type: string, format: uuid }
+        room_id: { type: string, format: uuid, nullable: true }
+        type_id: { type: string, format: uuid }
+        serial_number: { type: string }
+        name: { type: string }
+        firmware_version: { type: string, nullable: true }
+        status: { type: string, enum: [active, inactive, error] }
+        installed_at: { type: string, format: date-time }
+        modules:
+          type: array
+          items: { $ref: '#/components/schemas/Module' }
+    DeviceList:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Device' }
+        total: { type: integer }
+    ModuleCreate:
+      type: object
+      required: [kind, capability]
+      properties:
+        kind: { type: string, enum: [measuring, actuating] }
+        capability: { type: string, example: temperature }
+        unit: { type: string, example: °C }
+    Module:
+      type: object
+      required: [id, device_id, kind, capability]
+      properties:
+        id: { type: string, format: uuid }
+        device_id: { type: string, format: uuid }
+        kind: { type: string, enum: [measuring, actuating] }
+        capability: { type: string }
+        unit: { type: string, nullable: true }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+  responses:
+    InternalError:
+      description: Внутренняя ошибка сервиса
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    BadRequest:
+      description: Некорректный запрос
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Требуется аутентификация
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Нет доступа к дому этого устройства
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+security:
+  - bearerAuth: []

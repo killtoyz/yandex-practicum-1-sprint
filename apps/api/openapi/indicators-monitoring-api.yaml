@@ -1,0 +1,111 @@
+openapi: 3.0.3
+info:
+  title: Indicators Monitoring API
+  description: |
+    Чтение показаний устройств. Приём телеметрии выполняется асинхронно
+    через событие telemetry.reading.recorded и в этом контракте не описан.
+  version: 1.0.0
+servers:
+  - url: https://api.smarthome.example/api/v1
+    description: Через API-шлюз
+tags:
+  - name: readings
+paths:
+  /modules/{moduleId}/readings/latest:
+    get:
+      tags: [readings]
+      summary: Последнее показание модуля
+      operationId: getLatestReading
+      parameters:
+        - $ref: '#/components/parameters/ModuleId'
+      responses:
+        '200':
+          description: Последнее сохранённое показание
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Reading' }
+        '404':
+          description: Показаний для модуля ещё не поступало
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /modules/{moduleId}/readings:
+    get:
+      tags: [readings]
+      summary: История показаний за период
+      operationId: listReadings
+      parameters:
+        - $ref: '#/components/parameters/ModuleId'
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+        - name: aggregate
+          in: query
+          description: Агрегация значений внутри интервала
+          schema: { type: string, enum: [none, avg, min, max], default: none }
+        - name: interval
+          in: query
+          description: Размер интервала агрегации
+          schema: { type: string, enum: [1m, 5m, 1h, 1d], default: 1h }
+      responses:
+        '200':
+          description: Ряд показаний
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReadingList' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '500': { $ref: '#/components/responses/InternalError' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ModuleId:
+      name: moduleId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    Reading:
+      type: object
+      required: [module_id, metric, value, unit, measured_at]
+      properties:
+        module_id: { type: string, format: uuid }
+        metric: { type: string, example: temperature }
+        value: { type: number, format: double, example: 21.4 }
+        unit: { type: string, example: °C }
+        measured_at: { type: string, format: date-time }
+    ReadingList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Reading' }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+  responses:
+    InternalError:
+      description: Внутренняя ошибка сервиса
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    BadRequest:
+      description: Некорректный запрос
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+security:
+  - bearerAuth: []

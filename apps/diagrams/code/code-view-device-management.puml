@@ -1,0 +1,57 @@
+@startuml code-view-heating-device-management
+
+class DeviceHandler {
+  - service : DeviceService
+  + Register(c *gin.Context)
+  + Get(c *gin.Context)
+  + List(c *gin.Context)
+  + Update(c *gin.Context)
+  + Delete(c *gin.Context)
+}
+
+interface DeviceService {
+  + Register(ctx, NewDevice) (Device, error)
+  + Get(ctx, DeviceID) (Device, error)
+  + List(ctx, Filter) ([]Device, error)
+  + Update(ctx, DeviceID, DevicePatch) (Device, error)
+  + Remove(ctx, DeviceID) error
+}
+
+class deviceService {
+  - repo : DeviceRepository
+  - events : EventPublisher
+}
+
+interface DeviceRepository {
+  + Insert(ctx, Device) (Device, error)
+  + FindByID(ctx, DeviceID) (Device, error)
+  + FindAll(ctx, Filter) ([]Device, error)
+  + Update(ctx, Device) (Device, error)
+  + Delete(ctx, DeviceID) error
+}
+
+class pgDeviceRepository {
+  - pool : *pgxpool.Pool
+}
+
+interface EventPublisher {
+  + Publish(ctx, DeviceEvent) error
+}
+
+class Device <<entity>> {
+  + ID : DeviceID
+  + HouseID : HouseID
+  + Name : string
+  + Type : DeviceType
+  + Location : RoomID
+  + State : DeviceState
+  + CreatedAt : time.Time
+}
+
+DeviceHandler --> DeviceService
+deviceService ..|> DeviceService
+deviceService --> DeviceRepository
+deviceService --> EventPublisher
+pgDeviceRepository ..|> DeviceRepository
+DeviceRepository ..> Device
+@enduml

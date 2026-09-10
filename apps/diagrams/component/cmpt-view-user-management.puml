@@ -1,0 +1,28 @@
+@startuml smarthome-app-cmpt-view-user-management
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Пользователь", "Пользователь умного дома")
+
+Container_Boundary(identityService, "Microservice: Identity", "Go, Gin-gonic") {
+    Component(authController, "authController", "Регистрация, вход, обновление токена")
+    Component(userController, "userController", "Профиль пользователя")
+    Component(authService, "Auth Service", "Проверка учётных данных, выпуск и валидация токенов")
+    Component(userService, "User Service", "Бизнес-логика учётных записей")
+    Component(passwordHasher, "Password Hasher", "Хеширование и проверка паролей")
+    Component(userRepository, "RepositoryLayer", "Слой доступа к данным")
+    Component(userDb, "Users Database", "Хранит учётные записи и токены обновления")
+}
+
+Rel(user, authController, "Регистрируется, входит в систему")
+Rel(user, userController, "Просматривает и изменяет профиль")
+Rel(authController, authService, "Запрос на аутентификацию")
+Rel(userController, userService, "Операции с учётной записью")
+Rel(authService, passwordHasher, "Проверяет пароль")
+Rel(authService, userRepository, "Читает учётную запись")
+Rel(userService, userRepository, "Читает/Записывает данные пользователя")
+Rel(userRepository, userDb, "Взаимодействие с БД")
+
+@enduml

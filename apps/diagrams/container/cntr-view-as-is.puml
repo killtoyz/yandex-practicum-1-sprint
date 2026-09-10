@@ -1,0 +1,24 @@
+@startuml smarthome-app-cntr-view-as-is
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Пользователь", "Пользователь умного дома")
+Person(spec, "Специалист", "Специалист по подключению")
+
+Container_Boundary(smarthomeApp, "smarthomeApp") {
+  Container(webApp, "Web Application", "Go, Gin-gonic", "Принимает запросы пользователя")
+  Container(temperatureService, "Temperature Service", "Go", "Предоставляет данные об устройствах")
+  Container(db, "Database", "PostgreSQL", "Хранит данные пользователей, дома и устройств")
+}
+
+System_Ext(device, "Устройство", "Датчик отопления")
+
+Rel(user, webApp, "Использует систему")
+Rel(spec, webApp, "Подключает устройства")
+Rel(webApp, temperatureService, "Получает данные об устройствах")
+Rel(webApp,db,"Читает/Пишет данные")
+Rel(webApp, device, "Управляет")
+
+@enduml

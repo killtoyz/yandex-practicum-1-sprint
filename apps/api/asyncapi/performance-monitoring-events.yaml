@@ -1,0 +1,92 @@
+asyncapi: 3.0.0
+info:
+  title: Performance Monitoring Events
+  version: 1.0.0
+  description: |
+    Приём сигналов о доступности устройств. Сервис только подписчик:
+    он поддерживает актуальное состояние каждого устройства в своей базе,
+    а пользователь читает его синхронно через REST.
+servers:
+  broker:
+    host: kafka:9092
+    protocol: kafka
+    description: Общий брокер сообщений экосистемы
+channels:
+  deviceHeartbeat:
+    address: device.heartbeat
+    description: Периодический сигнал устройства о том, что оно на связи
+    messages:
+      deviceHeartbeat:
+        $ref: '#/components/messages/DeviceHeartbeat'
+  deviceRegistered:
+    address: device.registered
+    description: Устройство появилось в каталоге и подлежит наблюдению
+    messages:
+      deviceRegistered:
+        $ref: '#/components/messages/DeviceRegistered'
+  deviceRemoved:
+    address: device.removed
+    description: Устройство удалено, наблюдение прекращается
+    messages:
+      deviceRemoved:
+        $ref: '#/components/messages/DeviceRemoved'
+operations:
+  receiveDeviceHeartbeat:
+    action: receive
+    channel:
+      $ref: '#/channels/deviceHeartbeat'
+    messages:
+      - $ref: '#/channels/deviceHeartbeat/messages/deviceHeartbeat'
+  receiveDeviceRegistered:
+    action: receive
+    channel:
+      $ref: '#/channels/deviceRegistered'
+    messages:
+      - $ref: '#/channels/deviceRegistered/messages/deviceRegistered'
+  receiveDeviceRemoved:
+    action: receive
+    channel:
+      $ref: '#/channels/deviceRemoved'
+    messages:
+      - $ref: '#/channels/deviceRemoved/messages/deviceRemoved'
+components:
+  messages:
+    DeviceHeartbeat:
+      name: DeviceHeartbeat
+      title: Устройство на связи
+      contentType: application/json
+      bindings:
+        kafka:
+          key: { type: string, format: uuid }
+      payload:
+        $ref: '#/components/schemas/DeviceHeartbeatPayload'
+    DeviceRegistered:
+      name: DeviceRegistered
+      title: Устройство зарегистрировано
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/DeviceRefPayload'
+    DeviceRemoved:
+      name: DeviceRemoved
+      title: Устройство удалено
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/DeviceRefPayload'
+  schemas:
+    DeviceHeartbeatPayload:
+      type: object
+      required: [event_id, device_id, state, occurred_at]
+      properties:
+        event_id: { type: string, format: uuid }
+        device_id: { type: string, format: uuid }
+        state: { type: string, enum: [online, offline, degraded] }
+        occurred_at: { type: string, format: date-time }
+        signal_level: { type: integer, description: Уровень сигнала, dBm }
+    DeviceRefPayload:
+      type: object
+      required: [event_id, occurred_at, device_id]
+      properties:
+        event_id: { type: string, format: uuid }
+        occurred_at: { type: string, format: date-time }
+        device_id: { type: string, format: uuid }
+        house_id: { type: string, format: uuid }
